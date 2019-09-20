@@ -1,0 +1,99 @@
+const int trigPin1 = 11; // the number of the trigger output pin ( sensor 1 )
+const int echoPin1 = 10; // the number of the echo input pin ( sensor 1 )     
+const int trigPin2 = 6;  // the number of the trigger output pin ( sensor 2 ) 
+const int echoPin2 = 5;  // the number of the echo input pin ( sensor 2 ) 
+
+////////////////////////////////// variables used for distance calculation 
+long duration;                               
+int distance1, distance2; 
+float r;
+unsigned long temp=0;
+int temp1=0;
+int l=0;
+////////////////////////////////
+
+void find_distance (void);
+
+// this function returns the value in cm.
+/*we should not trigger the both ultrasonic sensor at the same time. 
+it might cause error result due to the intraction of the both soundswaves.*/ 
+void find_distance (void)                   
+{ 
+
+  digitalWrite(trigPin1, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin1, LOW);
+
+  duration = pulseIn(echoPin1, HIGH, 5000);// here this pulsein function wont wait more then 5000us for the ultrasonic sound to came back. (due to this it wont measure more than 60cm)
+                                           // it helps this project to use the gesture control in the defined space. 
+                                           // so that, it will return zero if distance greater then 60m. ( it helps usually if we remove our hands infront of the sensors ).
+ 
+  r = 3.4 * duration / 2;                  // calculation to get the measurement in cm using the time returned by the pulsein function.     
+  distance1 = r / 100.00;
+  /////////////////////////////////////////upper part for left sensor and lower part for right sensor
+  digitalWrite(trigPin2, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin2, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin2, LOW);
+
+  duration = pulseIn(echoPin2, HIGH, 5000);
+  r = 3.4 * duration / 2;     
+  distance2 = r / 100.00;
+  delay(100);
+}
+
+void setup() 
+{
+  Serial.begin(9600);
+  pinMode(trigPin1, OUTPUT); // initialize the trigger and echo pins of both the sensor as input and output:
+  pinMode(echoPin1, INPUT);
+  pinMode(trigPin2, OUTPUT);
+  pinMode(echoPin2, INPUT);
+  delay (1000);
+    
+}
+
+void loop()
+{
+  find_distance(); // this function will stores the current distance measured by the ultrasonic sensor in the global variable "distance1 and distance2"
+                   // no matter what, the program has to call this "find_distance" function continuously to get the distance value at all time.
+  
+  if(distance2<=15 && distance2>=5 && distance1==0) // once if we placed our hands in front of the right sensor in the range between 15 to 35cm this condition becomes true.
+  {
+    Serial.println("xpositive");
+    delay(100);
+  }
+   
+    else if(distance2<=35 && distance2>15 && distance1==0)
+{
+    Serial.println("xnegative");
+    delay(100);
+}   
+    if(distance1<=15 && distance1>=5 && distance2==0) // once if we placed our hands in front of the right sensor in the range between 15 to 35cm this condition becomes true.
+    {
+      Serial.println("ypositive");
+    delay(100);
+    }
+    else if(distance1<=35 && distance1>15 && distance2==0)
+    {
+    Serial.println("ynegative");
+    delay(100);
+      
+    
+    }
+    if(distance1<=35 && distance1>15 && distance2<=35 && distance2>15 ) // once if we placed our hands in front of the right sensor in the range between 15 to 35cm this condition becomes true.
+    {
+      Serial.println("zoom in");
+    delay(100);
+    }
+    else if(distance1<=15 && distance1>=5 && distance2<=15 && distance2>=5)
+    {
+    Serial.println("zoom out");
+    delay(100);
+      
+    
+    }
+   
+    
+  }
